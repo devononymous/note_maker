@@ -1,43 +1,37 @@
-
 import React, { useState, useEffect } from 'react';
-import ReactMde from 'react-mde';
-import ReactMarkdown from 'react-markdown';
-import 'react-mde/lib/styles/css/react-mde-all.css';
+import MDEditor from '@uiw/react-md-editor';
 
 const NoteEditor = ({ note = {}, onSave }) => {
   const [title, setTitle] = useState(note.title || '');
   const [content, setContent] = useState(note.content || '');
-  const [tab, setTab] = useState('write');
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (title.trim() || content.trim()) {
-        onSave({
-          ...note,
-          title,
-          content,
-          updatedAt: new Date().toISOString(),
-          synced: false,
-        });
-      }
+    const timeout = setTimeout(() => {
+      onSave({
+        ...note,
+        title,
+        content,
+        updatedAt: new Date().toISOString(),
+        synced: false,
+      });
     }, 500);
-    return () => clearTimeout(handler);
+
+    return () => clearTimeout(timeout);
   }, [title, content]);
 
   return (
     <div className="note-editor">
       <input
         className="note-title"
+        placeholder="Note Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Note Title"
+        style={{ width: '100%', padding: '8px', fontSize: '18px', marginBottom: '10px' }}
       />
-      <ReactMde
+      <MDEditor
         value={content}
         onChange={setContent}
-        selectedTab={tab}
-        onTabChange={setTab}
-        generateMarkdownPreview={(md) => Promise.resolve(<ReactMarkdown>{md}</ReactMarkdown>)}
+        height={300}
       />
     </div>
   );
