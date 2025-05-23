@@ -1,46 +1,79 @@
 
-import React, { useState, useEffect } from 'react';
-import ReactMde from 'react-mde';
-import ReactMarkdown from 'react-markdown';
-import 'react-mde/lib/styles/css/react-mde-all.css';
+import React, { useEffect, useState } from 'react';
+import NoteEditor from './NoteEditor';
+import { getAllNotes, addOrUpdateNote, deleteNote, getUnsyncedNotes } from '../utils/db';
+import { v4 as uuidv4 } from 'uuid';
 
-const NoteEditor = ({ note = {}, onSave }) => {
-  const [title, setTitle] = useState(note.title || '');
-  const [content, setContent] = useState(note.content || '');
-  const [tab, setTab] = useState('write');
+const NoteList = ({ isOnline }) => {
+  const [notes, setNotes] = useState([]);
+  const [search, setSearch] = useState('');
+
+  const fetchNotes = async () => {
+    const all = await getAllNotes();
+    setNotes(all);
+  };
+
+  const syncWithBackend = async () => {
+    const unsynced = await getUnsyncedNotes();
+
+    for (const note of unsynced) {
+      try {
+        await fetch(`http://localhost:5000/notes/${note.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...note, synced: true }),
+        });
+        await addOrUpdateNote({ ...note, synced: true });
+      } catch {
+        console.error('Sync failed:', note.id);
+      }
+    }
+    fetchNotes();
+  };
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      if (title.trim() || content.trim()) {
-        onSave({
-          ...note,
-          title,
-          content,
-          updatedAt: new Date().toISOString(),
-          synced: false,
-        });
-      }
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [title, content]);
+    fetchNotes();
+  }, []);
+
+  useEffect(() => {
+    if (isOnline) syncWithBackend();
+  }, [isOnline]);
+
+  const handleSave = async (note) => {
+    if (!note.id) note.id = uuidv4();
+    await addOrUpdateNote(note);
+    fetchNotes();
+  };
+
+  const handleDelete = async (id) => {
+    await deleteNote(id);
+    await fetch(`http://localhost:5000/notes/${id}`, { method: 'DELETE' });
+    fetchNotes();
+  };
+
+  const filteredNotes = notes.filter((n) =>
+    n.title.toLowerCase().includes(search.toLowerCase()) ||
+    n.content.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div className="note-editor">
+    <div>
       <input
-        className="note-title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Note Title"
+        placeholder="Search notes..."
+        onChange={(e) => setSearch(e.target.value)}
+        value={search}
+        className="search-input"
       />
-      <ReactMde
-        value={content}
-        onChange={setContent}
-        selectedTab={tab}
-        onTabChange={setTab}
-        generateMarkdownPreview={(md) => Promise.resolve(<ReactMarkdown>{md}</ReactMarkdown>)}
-      />
+      <button onClick={() => handleSave({ title: '', content: '' })}>+ New Note</button>
+      {filteredNotes.map((note) => (
+        <div key={note.id} className="note-card">
+          <NoteEditor note={note} onSave={handleSave} />
+          <button onClick={() => handleDelete(note.id)}>🗑 Delete</button>
+          <div>Status: {note.synced ? '✅ Synced' : '⚠️ Unsynced'}</div>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default NoteEditor;
+export default NoteList;
