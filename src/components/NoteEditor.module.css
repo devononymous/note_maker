@@ -1,0 +1,19 @@
+.noteEditor {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 12px;
+        background-color: #fafafa;
+      }
+      
+      .noteTitle {
+        width: 100%;
+        font-size: 18px;
+        padding: 10px;
+        margin-bottom: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      

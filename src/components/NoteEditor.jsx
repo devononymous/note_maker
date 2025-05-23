@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
+import styles from './NoteEditor.module.css';
 
 const NoteEditor = ({ note = {}, onSave }) => {
   const [title, setTitle] = useState(note.title || '');
@@ -20,15 +21,15 @@ const NoteEditor = ({ note = {}, onSave }) => {
   }, [title, content]);
 
   return (
-    <div className="note-editor">
+    <div className={styles.noteEditor}>
       <input
-        className="note-title"
+        className={styles.noteTitle}
         placeholder="Note Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         style={{ width: '100%', padding: '8px', fontSize: '18px', marginBottom: '10px' }}
       />
-      <MDEditor
+      <MDEditor 
         value={content}
         onChange={setContent}
         height={300}

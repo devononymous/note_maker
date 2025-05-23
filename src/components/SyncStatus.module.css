@@ -1,0 +1,15 @@
+.statusBar {
+        padding: 10px 20px;
+        background-color: #eee;
+        text-align: center;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 1px solid #ccc;
+      }
+      .online {
+        color: green;
+      }
+      .offline {
+        color: red;
+      }
+      
